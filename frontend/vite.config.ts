@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 4173,
+    host: true,
+    allowedHosts: ["8nvdtr-4173.csb.app"],
     proxy: {
       "/api": "http://localhost:8000",
     },

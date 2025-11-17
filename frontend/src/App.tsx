@@ -231,8 +231,29 @@ const App = () => {
                       viewMode === "historical7" ? historicalData7 :
                       viewMode === "historical14" ? historicalData14 : historicalData21;
   const sortedDays = useMemo(() => currentData?.days ?? [], [currentData]);
+  const todayStart = useMemo(() => new Date().toLocaleDateString("en-CA"), []);
+  const displayDays = useMemo(() => {
+    if (viewMode !== "forecast") {
+      return sortedDays;
+    }
+
+    const startIdx = sortedDays.findIndex((day) => day.date >= todayStart);
+    if (startIdx === -1) {
+      return sortedDays.slice(0, 7);
+    }
+
+    const upcoming = sortedDays.slice(startIdx, startIdx + 7);
+    return upcoming.length ? upcoming : sortedDays.slice(0, 7);
+  }, [sortedDays, todayStart, viewMode]);
   const hourlyToday = useMemo(() => currentData?.hourly_today ?? [], [currentData]);
-  const selectedDay = sortedDays[selectedDayIndex] || null;
+  const selectedDay = displayDays[selectedDayIndex] || null;
+
+  useEffect(() => {
+    setSelectedDayIndex((prev) => {
+      if (displayDays.length === 0) return 0;
+      return prev >= displayDays.length ? displayDays.length - 1 : prev;
+    });
+  }, [displayDays.length]);
 
   const timeOfDaySplit = useMemo(() => {
     if (hourlyToday.length === 0) return { daytime: [], evening: [], overnight: [] };
@@ -254,34 +275,34 @@ const App = () => {
   }, [hourlyToday]);
 
   const overviewStats = useMemo(() => {
-    if (!forecast || sortedDays.length === 0) return null;
+    if (!forecast || displayDays.length === 0) return null;
 
-    const highWindDays = sortedDays.filter(d => (d.felltop_max_gust_mph ?? 0) > windAlertThreshold).length;
-    const highRainDays = sortedDays.filter(d => (d.precipitation_mm ?? 0) > rainAlertThreshold).length;
-    const maxWind = Math.max(...sortedDays.map(d => d.felltop_max_gust_mph ?? 0));
-    const totalRain = sortedDays.reduce((sum, d) => sum + (d.precipitation_mm ?? 0), 0);
+    const highWindDays = displayDays.filter(d => (d.felltop_max_gust_mph ?? 0) > windAlertThreshold).length;
+    const highRainDays = displayDays.filter(d => (d.precipitation_mm ?? 0) > rainAlertThreshold).length;
+    const maxWind = Math.max(...displayDays.map(d => d.felltop_max_gust_mph ?? 0));
+    const totalRain = displayDays.reduce((sum, d) => sum + (d.precipitation_mm ?? 0), 0);
     // Fell-top temperatures
-    const maxFelltopTemp = Math.max(...sortedDays.map(d => d.felltop_max_temp_c ?? -999));
-    const minFelltopTemp = Math.min(...sortedDays.map(d => d.felltop_min_temp_c ?? 999));
+    const maxFelltopTemp = Math.max(...displayDays.map(d => d.felltop_max_temp_c ?? -999));
+    const minFelltopTemp = Math.min(...displayDays.map(d => d.felltop_min_temp_c ?? 999));
     // Valley temperatures
-    const maxValleyTemp = Math.max(...sortedDays.map(d => d.max_temp_c ?? -999));
-    const minValleyTemp = Math.min(...sortedDays.map(d => d.min_temp_c ?? 999));
+    const maxValleyTemp = Math.max(...displayDays.map(d => d.max_temp_c ?? -999));
+    const minValleyTemp = Math.min(...displayDays.map(d => d.min_temp_c ?? 999));
 
     return { highWindDays, highRainDays, maxWind, totalRain, maxFelltopTemp, minFelltopTemp, maxValleyTemp, minValleyTemp };
-  }, [sortedDays, forecast]);
+  }, [displayDays, forecast]);
 
   const riskSummary = useMemo(() => {
-    if (!forecast || sortedDays.length === 0) return { precipitation: "Low", wind: "Low", visibility: "Good" };
+    if (!forecast || displayDays.length === 0) return { precipitation: "Low", wind: "Low", visibility: "Good" };
 
-    const maxPrecip = Math.max(...sortedDays.map(d => d.precipitation_mm ?? 0));
-    const maxWind = Math.max(...sortedDays.map(d => d.max_wind_mph ?? 0));
+    const maxPrecip = Math.max(...displayDays.map(d => d.precipitation_mm ?? 0));
+    const maxWind = Math.max(...displayDays.map(d => d.max_wind_mph ?? 0));
 
     return {
       precipitation: maxPrecip > rainAlertThreshold ? "High" : maxPrecip > 10 ? "Medium" : "Low",
       wind: maxWind > windAlertThreshold ? "High" : maxWind > 25 ? "Medium" : "Low",
       visibility: "Good", // Placeholder - not available in current data
     };
-  }, [sortedDays, forecast]);
+  }, [displayDays, forecast]);
 
   return (
     <div className="app-shell">
@@ -291,10 +312,10 @@ const App = () => {
           <p className="subtitle">
             Weather forecast for mountain rescue operations.
           </p>
-          {currentData && sortedDays.length > 0 && (
+          {currentData && displayDays.length > 0 && (
             <p className="meta-issued">
               {viewMode === "forecast" ? "Issued" : "Historical data"} {formatTime(currentData.run_timestamp)} ·
-              {viewMode === "forecast" ? "Valid for" : "Covering"} {formatDate(sortedDays[0].date)} – {formatDate(sortedDays[sortedDays.length - 1].date)}
+              {viewMode === "forecast" ? "Valid for" : "Covering"} {formatDate(displayDays[0].date)} – {formatDate(displayDays[displayDays.length - 1].date)}
             </p>
           )}
           <div className="view-mode-toggle">
@@ -325,21 +346,21 @@ const App = () => {
           </div>
         </div>
         <div className="header-right">
-          {sortedDays.length > 0 && sortedDays[0].sunrise && sortedDays[0].sunset && (
+          {displayDays.length > 0 && displayDays[0].sunrise && displayDays[0].sunset && (
             <div className="daylight-info">
               <div className="sun-times">
                 <div className="sun-time">
                   <span className="sun-label">Sunrise</span>
-                  <span className="sun-value">{formatTime(sortedDays[0].sunrise)}</span>
+                  <span className="sun-value">{formatTime(displayDays[0].sunrise)}</span>
                 </div>
                 <span className="sun-separator">•</span>
                 <div className="sun-time">
                   <span className="sun-label">Sunset</span>
-                  <span className="sun-value">{formatTime(sortedDays[0].sunset)}</span>
+                  <span className="sun-value">{formatTime(displayDays[0].sunset)}</span>
                 </div>
               </div>
               <div className="daylight-duration">
-                {calculateRemainingDaylight(sortedDays[0].sunrise, sortedDays[0].sunset)}
+                {calculateRemainingDaylight(displayDays[0].sunrise, displayDays[0].sunset)}
               </div>
             </div>
           )}
@@ -356,7 +377,7 @@ const App = () => {
         {!loading && !forecast && <p className="notice">No forecast data yet.</p>}
 
         <section className="forecast-grid">
-          {sortedDays.map((day, idx) => (
+          {displayDays.map((day, idx) => (
             <article
               key={day.date}
               className={`day-card ${severityClass(day)} ${selectedDayIndex === idx ? 'selected' : ''}`}

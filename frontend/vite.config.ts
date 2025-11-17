@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 4173,
     host: true,
-    allowedHosts: [/\.csb\.app$/],
+  allowedHosts: true,
     proxy: {
       "/api": "http://localhost:8000",
     },

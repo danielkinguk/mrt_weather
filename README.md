@@ -10,6 +10,16 @@ A productivity-focused weather briefing for Duddon & Furness MRT. This repo pair
 
 ## Running locally
 
+### Setup & startup sequence
+
+Follow these commands in order to install dependencies and launch the full platform:
+
+1. `cd backend && python -m pip install -r requirements.txt` (installs the FastAPI dependencies)
+2. `cd ../frontend && npm install` (installs the Vite/React dependencies)
+3. `cd .. && ./run_dev.sh` (starts uvicorn, waits for `/health`, and then launches the Vite dev server)
+
+Tip: run steps 1–2 once to prepare your workspace, then rerun `./run_dev.sh` whenever you want to relaunch both services.
+
 ### Backend API
 
 ```bash

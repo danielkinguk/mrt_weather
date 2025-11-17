@@ -30,8 +30,9 @@ app.add_middleware(
 @app.get("/api/forecast/latest", response_model=ForecastRun)
 async def latest_forecast() -> ForecastRun:
     latest = STORE.latest()
-    if not latest:
-        raise HTTPException(status_code=404, detail="No forecast run available yet.")
+    if latest is None:
+        latest = await fetch_and_aggregate_forecast(CONFIG)
+        STORE.add_run(latest)
     return latest
 
 

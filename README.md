@@ -28,6 +28,13 @@ npm run dev -- --host
 
 Vite proxies `/api` to the backend, so start both services together for local development. The UI highlights wind >40 mph and rain >20 mm, matching the backend thresholds.
 
+
+### Unified development workspace
+
+Run `./run_dev.sh` from the repo root to start the backend (uvicorn) first, wait for its `/health` endpoint, and then launch the Vite dev server with the frontend proxy pointing at the local API. The script keeps both processes running in one terminal and cleans up the backend when you exit the frontend server.
+
+Set `HOST`, `BACKEND_PORT`, or `FRONTEND_PORT` before running the script to override defaults (e.g., `BACKEND_PORT=8001 FRONTEND_PORT=5174 ./run_dev.sh`).
+
 ## Backend (Python)
 
 ### Setup

@@ -490,27 +490,24 @@ body {
 }
 
 .overview-bullets {
-  list-style: none;
+  list-style: disc;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding-left: 1rem;
 }
 
 .overview-bullets li {
-  padding-left: 1.5rem;
-  position: relative;
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
 }
 
-.overview-bullets li::before {
-  content: "•";
-  position: absolute;
-  left: 0.5rem;
+.overview-bullets li::marker {
   color: rgba(100, 150, 255, 0.8);
   font-size: 1.2rem;
+  margin-right: 0.35rem;
 }
 
 .overview-stats {

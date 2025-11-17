@@ -289,9 +289,7 @@ const App = () => {
         <div className="header-left">
           <h1>Duddon & Furness MRT - Weather</h1>
           <p className="subtitle">
-            {viewMode === "forecast" ? "7-day forecast" :
-             viewMode === "historical7" ? "Previous 7 days" :
-             viewMode === "historical14" ? "Previous 14 days" : "Previous 21 days"} for mountain rescue operations
+            Weather forecast for mountain rescue operations.
           </p>
           {currentData && sortedDays.length > 0 && (
             <p className="meta-issued">
